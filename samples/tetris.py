@@ -9,6 +9,7 @@ sys.path.append(os.path.abspath("."))
 from pyglet.window import key
 from tfgl.glapp import App,draw_line
 from tfgl.shapes import *
+from tfgl.lights import *
 import random,math
 
 class Tetrinimo(Shape):
@@ -27,6 +28,8 @@ class Tetrinimo(Shape):
         self.tetr_z=-2
         for block_pos in self.blocks:
             r_prism = RectangularPrism(position=(block_pos[0],block_pos[1]-1,0),wireframe=False,color=self.color)
+            r_prism.ambient = r_prism.diffuse=(self.color[0],self.color[1],self.color[2],1)
+            r_prism.specular=(self.color[0]/2,self.color[1]/2,self.color[2]/2,1)
             self.sub_shapes.append(r_prism)
         #center = RectangularPrism(position=(0,0,0))
         #self.sub_shapes.append(center)
@@ -40,7 +43,6 @@ class Tetrinimo(Shape):
         # self.y is centroid y
         c_y = min(self.sub_shapes,key=lambda sub_sh: sub_sh.y+sub_sh.height)
         return c_y.y+self.y-.5
-        
         
     def set_x(self,val):
         self.tetr_x = val//1
@@ -99,6 +101,13 @@ class TetrisApp(App):
         
         self.width = 25
         self.height = self.width * .75
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+        glEnable(GL_BLEND)
+        glShadeModel(GL_SMOOTH)
+        glEnable(GL_NORMALIZE)
+        self.light=Light(position=(self.width/2,self.width/2,0,1))
+        self.light.toggle()
         
     def generate_block(self):
         block = random.choice(self.tetrinimos)()
@@ -111,11 +120,10 @@ class TetrisApp(App):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)    
         glMatrixMode(GL_PROJECTION)    
         glLoadIdentity()   
-                
         #gluPerspective(60.0, self.width/self.height, .01, 100.0)        
         #glOrtho(-12.5, 12.5, 0.1, 25, 1, 100)
         glOrtho(0,self.width,0,self.height,1,100)
-            
+        
         glTranslatef(0,0,-10)
         draw_line(0,2,self.width,2,width=2,r=0,g=0,b=0)
         glTranslatef(0,0,10)        

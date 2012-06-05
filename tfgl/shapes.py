@@ -1,4 +1,4 @@
-import pyglet
+import pyglet,glcommon
 from pyglet.gl import *
 
 class Primitive(object):
@@ -37,6 +37,11 @@ class Shape(object):
         self.rot = rotation
         self.wireframe = wireframe
         self.sub_shapes = []
+        self.diffuse=(0,0,0,1)
+        self.ambient=(0,0,0,1)
+        self.specular=(0,0,0,1)
+        self.emission=(0,0,0,1)
+        self.shininess=(0)
     
     def rotate(self,x,y,z):
         rx,ry,rz = self.rot
@@ -61,6 +66,9 @@ class Shape(object):
         glRotatef(self.rot[2],0,0,1)
         #glTranslatef(-self.x,-self.y,-self.z)
         glColor3f(self.colors[0],self.colors[1],self.colors[2])
+        glMaterialfv(GL_FRONT,GL_DIFFUSE,glcommon.iter_to_glfloats(self.diffuse))
+        glMaterialfv(GL_FRONT,GL_AMBIENT,glcommon.iter_to_glfloats(self.ambient))
+        glMaterialfv(GL_FRONT,GL_SPECULAR,glcommon.iter_to_glfloats(self.specular))
         if self.wireframe:
             glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
             
@@ -82,11 +90,14 @@ class Shape(object):
 class RectangularPrism(Shape):
     def __init__(self,width=1,height=1,length=1,**kwargs):
         x,y,z = 0,0,0
+        # Front,Left,Right,Top,Bottom,Rear
         r = (x,y,z),(x+width,y,z),(x+width,y+height,z),(x,y+height,z),\
+            (x,y,z),(x,y,z+length),(x,y+height,z+length),(x,y+height,z),\
+            (x+width,y,z),(x+width,y,z+length),(x+width,y+height,z+length),(x+width,y+height,z),\
+            (x,y+height,z),(x+width,y+height,z),(x+width,y+height,z+length),(x, y+height,z+length),\
+            (x,y,z),(x+width,y,z),(x+width,y,z+length),(x,y,z+length),\
             (x,y,z+length),(x+width,y,z+length),(x+width,y+height,z+length),(x,y+height,z+length)
         self.width=width
         self.height=height
         faces = Primitive(r ,GL_QUADS)
-        r = r[0],r[4], r[1],r[5], r[2],r[6], r[3],r[7]
-        c = Primitive(r,GL_LINES)
-        super(RectangularPrism,self).__init__([faces,c],**kwargs)
+        super(RectangularPrism,self).__init__([faces,],**kwargs)
